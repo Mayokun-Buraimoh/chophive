@@ -1,2 +1,0 @@
-web: gunicorn TelegramBot.wsgi
-worker: python telegram_bot.py
