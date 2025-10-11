@@ -777,14 +777,22 @@ async def checkout(update:Update, context:ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
     
     locations = await get_location()
+    
+    keyboard = [
+        [InlineKeyboardButton(loc["name"], callback_data=f"location_{loc['id']}")]
+        for loc in locations
+    ]
     # location_names = [[loc["name"]] for loc in locations]  # make it button-friendly
     
-    reply_markup = [
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    # reply_markup = [
             # [InlineKeyboardButton("⬅️ Back to Food", callback_data="go_back_to_food")],
-            [InlineKeyboardButton(loc["name"], callback_data=f"location_{loc['id']}")]
-            for loc in locations
+            # [InlineKeyboardButton(loc["name"], callback_data=f"location_{loc['id']}")]
+            # for loc in locations
+            
             # [InlineKeyboardButton("🧾 Checkout", callback_data="checkout")],
-        ]
+        # ]
     # reply_markup = ReplyKeyboardMarkup(location_names, resize_keyboard=True, one_time_keyboard=True)
 
     await update.message.reply_text(
