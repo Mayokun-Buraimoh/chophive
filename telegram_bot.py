@@ -341,6 +341,7 @@ async def send_vendor_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "🛒 Select a vendor to order from:", reply_markup=markup
         )
         
+    return ConversationHandler.END
     # await update.message.reply_text("🛒 Select a vendor to order from:", reply_markup=markup)
 
 async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -357,8 +358,8 @@ async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("📧 Please enter your email address:")
         return ASK_EMAIL
     
-        await save_phone(telegram_id,phone)
-        await update.message.reply_text("✅ Phone number saved.")
+        # await save_phone(telegram_id,phone)
+        # await update.message.reply_text("✅ Phone number saved.")
         
     return await send_vendor_list(update, context)
 
