@@ -291,10 +291,17 @@ async def ask_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # if user.phone and user.email:
     #     await send_vendor_list(update, context)
-    
-    if user and user.phone and user.email:
+    if not user:
+        await update_or_create_telegram_user(telegram_id)
+        user = await get_user_by_telegram_id(telegram_id)
+       
+    if user.phone and user.email:
         await send_vendor_list(update, context)
-        return
+        return ConversationHandler.END
+     
+    # if user and user.phone and user.email:
+    #     await send_vendor_list(update, context)
+    #     return
     
     if not user.phone:
         await update.message.reply_text(
@@ -369,8 +376,10 @@ async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         phone = update.message.text.strip()
     
-    await send_vendor_list(update, context)
-    
+    # await send_vendor_list(update, context)
+    await save_phone(telegram_id, phone)
+    await update.message.reply_text("✅ Phone number saved.")
+
     user = await get_user_by_telegram_id(telegram_id)
     if not user.email:
         await update.message.reply_text("📧 Please enter your email address:")
@@ -379,7 +388,9 @@ async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # await save_phone(telegram_id,phone)
         # await update.message.reply_text("✅ Phone number saved.")
         
-    return await send_vendor_list(update, context)
+    await send_vendor_list(update, context)
+
+    return ConversationHandler.END
 
 async def handle_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
@@ -393,7 +404,8 @@ async def handle_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("📱 Please enter your phone number:")
         return ASK_PHONE
     
-    return await send_vendor_list(update, context)
+    await send_vendor_list(update, context)
+    return ConversationHandler.END
 
 async def handle_vendor_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
