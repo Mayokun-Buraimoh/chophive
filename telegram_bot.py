@@ -772,7 +772,7 @@ async def checkout(update:Update, context:ContextTypes.DEFAULT_TYPE):
     if not cart:
         await update.message.reply_text(
             " your cart is empty, add items to checkout",
-            reply_markup=reply_markup
+            # reply_markup=reply_markup
         )
         return ConversationHandler.END
     
