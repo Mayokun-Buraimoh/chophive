@@ -218,7 +218,8 @@ def checkout_items(telegram_id):
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user.id
     username = update.effective_user.username
-    new_user = await update_or_create_telegram_user(user)
+    
+    await update_or_create_telegram_user(user)
     
     await update.message.reply_text(
         f"👋Welcome to Chophive {username}\n\n  Thank you for choosing the number one food delivery service at Bowen University\n\n We've registered you using your telegram details. You can now place your orders\n\nSay no to long queues with ChopHive ",
@@ -327,19 +328,36 @@ async def send_vendor_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #     return ASK_EMAIL
             
     vendor_names = await get_vendor_names_with_ids()
+    if not vendor_names:
+        await update.message.reply_text("❌ No vendors found at the moment.")
+        return ConversationHandler.END
+
     keyboard = [[InlineKeyboardButton(name, callback_data=f'vendor_{vendor_id}')]
                 for vendor_id, name in vendor_names]
     markup = InlineKeyboardMarkup(keyboard)
     
-    if hasattr(update, "callback_query") and update.callback_query:
+    # if hasattr(update, "callback_query") and update.callback_query:
+    #     await update.callback_query.edit_message_text(
+    #         "🛒 Select a vendor to order from:", reply_markup=markup
+    #    )
+    #     return  # ✅ stop here so it won’t send twice
+    # else:
+    #     await update.message.reply_text(
+    #         "🛒 Select a vendor to order from:", reply_markup=markup
+    #     )
+    
+    if update.callback_query:
+        await update.callback_query.answer()
         await update.callback_query.edit_message_text(
-            "🛒 Select a vendor to order from:", reply_markup=markup
-       )
-        return  # ✅ stop here so it won’t send twice
+            text="🛒 Select a vendor to order from:",
+            reply_markup=markup
+        )
     else:
         await update.message.reply_text(
-            "🛒 Select a vendor to order from:", reply_markup=markup
+            text="🛒 Select a vendor to order from:",
+            reply_markup=markup
         )
+
         
     return ConversationHandler.END
     # await update.message.reply_text("🛒 Select a vendor to order from:", reply_markup=markup)
