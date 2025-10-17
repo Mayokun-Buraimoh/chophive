@@ -15,7 +15,7 @@ load_dotenv()
 
 from pathlib import Path
 
-import dj_database_url
+# import dj_database_url
 
 
 
