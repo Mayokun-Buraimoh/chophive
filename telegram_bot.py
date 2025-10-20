@@ -751,7 +751,7 @@ async def handle_view_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         keyboard.append([
             InlineKeyboardButton(
-                f"{food_name} × {portions} → ₦{total}",
+                f"{vendor_name} {food_name} × {portions} → ₦{total}",
                 callback_data=f"manage_{item.id}"
             )
         ])
