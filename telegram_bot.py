@@ -505,10 +505,10 @@ async def handle_food_selection(update: Update, context: ContextTypes.DEFAULT_TY
     food = await get_food_by_id(food_id)
     context.user_data['selected_food'] = {'id': food.id, 'name': food.name, 'price': food.price}
     number_keyboard = [
-        [[InlineKeyboardButton(str(i), callback_data=f"portions_{i}")] for i in range(1, 7)],
-        [InlineKeyboardButton("⬅️ Back to Food (**Add more food**)", callback_data="continue_shopping")]
+        [InlineKeyboardButton(str(i), callback_data=f"portions_{i}")]
+        for i in range(1, 7)
     ]
-   
+    
     number_markup = InlineKeyboardMarkup(number_keyboard)
     # message = f"✅ You selected *{food.name}*\nPrice: ₦{food.price}\n\nHow many portions would you like? (Type a number)"
     # keyboard = [[InlineKeyboardButton()]
@@ -728,6 +728,9 @@ async def handle_view_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total_plate_cost = 0
     current_plate = None
     plate_count = 0
+    
+    keyboard = []
+
     for i, item in enumerate(cart, 1):
         food_name = item.food.name
         vendor_name = item.vendor.name
@@ -745,17 +748,55 @@ async def handle_view_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
         total = price * portions
         message += f"{i}. ({vendor_name}) x {food_name} x {portions} → ₦{total}\n"
         total_sum += total
-    
+        
+        keyboard.append([
+            InlineKeyboardButton(
+                f"{food_name} × {portions} → ₦{total}",
+                callback_data=f"manage_{item.id}"
+            )
+        ])
+
     plate_price = cart[0].vendor.plate_price if cart else 0
     total_plate_cost = plate_price * plate_count
   
     message += f" *Delivery fee is {delivery_fee}*\n"
     message += f" *Cost of the pack {total_plate_cost}*\n"
     message += f"\n\n💰 *Total: ₦{total_sum + delivery_fee + total_plate_cost}*"
-
+    message += "🚫 *Tap any item below to edit or remove it*"
+    
+    keyboard.append([InlineKeyboardButton("🧹 Clear Cart", callback_data="clear_cart")])
+    
     await update.message.reply_text(message, parse_mode="Markdown", reply_markup=reply_markup)
 
+async def handle_manage_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    item_id = int(query.data.split("_")[1])
+    item = await get_cart_item(item_id)  # Create this helper to fetch a single item
 
+    if not item:
+        await query.edit_message_text("⚠️ Item not found in your cart.")
+        return
+
+    text = (
+        f"🍔 *{item.food.name}*\n"
+        f"Vendor: {item.vendor.name}\n"
+        f"Price: ₦{item.food.price}\n"
+        f"Current Quantity: {item.portions}\n\n"
+        "What would you like to do?"
+    )
+
+    keyboard = [
+        [
+            InlineKeyboardButton("✏️ Edit Quantity", callback_data=f"edit_{item.id}"),
+            InlineKeyboardButton("🗑 Delete Item", callback_data=f"delete_{item.id}")
+        ],
+        [InlineKeyboardButton("🔙 Back to Cart", callback_data="continue_shopping")]
+    ]
+
+    await query.edit_message_text(text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
+    
 async def clear_cart(update:Update, context:ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
     await clear_cart_items(telegram_id)
@@ -1084,6 +1125,7 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_portion_input, pattern="^portions_"))
     app.add_handler(CallbackQueryHandler(handle_next_plate, pattern="^next_plate$"))
     app.add_handler(CallbackQueryHandler(handle_cart_or_continue, pattern="^(add_to_cart|continue_shopping|checkout)$"))
+    app.add_handler(CallbackQueryHandler(handle_manage_item, pattern=r"^manage_\d+$"))
  
     app.add_error_handler(error)
     
