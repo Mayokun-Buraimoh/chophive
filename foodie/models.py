@@ -9,7 +9,7 @@ class TelegramUser(models.Model):
     phone = models.CharField(max_length=20, unique= True)
     
     def __str__(self):
-        return f"{self.phone} - {self.telegram_id}" 
+        return f"{self.username} - {self.phone} - {self.email}" 
     
 class Vendors(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -75,12 +75,18 @@ class OrderItem(models.Model):
 class Location(models.Model):
     name = models.CharField(max_length=20, unique=True )
     
+    def __str__(self):
+        return self.name
+    
 
 class Waiter(models.Model):
     name = models.CharField(max_length=20)
     user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE)
     phone_no = models.IntegerField()
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.name
     
 # to track waiters current items to be delivered
 class WaiterAssignmentTracker(models.Model):

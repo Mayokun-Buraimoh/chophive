@@ -31,6 +31,7 @@ from foodie.models import Vendors, Food, TelegramUser, Order, OrderItem, Cart, L
 from asgiref.sync import sync_to_async
 import asyncio, random, uuid, requests
 # Telegram bot token and username
+
 TOKEN = os.getenv("TELEGRAM_KEY")
 BOT_USERNAME: Final = '@mayviccbot'
 
@@ -657,7 +658,7 @@ async def handle_cart_or_continue(update: Update, context: ContextTypes.DEFAULT_
         foods = await get_foods_by_vendor(vendor)
         keyboard = [
             # [InlineKeyboardButton("⬅️ Back to Food", callback_data="go_back_to_food")],
-            [InlineKeyboardButton("⬅️ Back to Food(* Add more food *)", callback_data="continue_shopping")],
+            [InlineKeyboardButton("⬅️ Back to Food(** Add more food **)", callback_data="continue_shopping")],
             [InlineKeyboardButton("🧾 Checkout", callback_data="checkout")],
         ]
         markup = InlineKeyboardMarkup(keyboard)
