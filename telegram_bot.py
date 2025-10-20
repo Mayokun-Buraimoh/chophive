@@ -497,18 +497,18 @@ async def handle_food_selection(update: Update, context: ContextTypes.DEFAULT_TY
     query = update.callback_query
     await query.answer()
     
-    if query.data == "go_back_to_food":
-        await go_back_to_food(update, context)
-        return
+    # if query.data == "go_back_to_food":
+    #     await go_back_to_food(update, context)
+    #     return
     
     food_id = int(query.data.replace("food_", ""))
     food = await get_food_by_id(food_id)
     context.user_data['selected_food'] = {'id': food.id, 'name': food.name, 'price': food.price}
     number_keyboard = [
-        [InlineKeyboardButton(str(i), callback_data=f"portions_{i}")]
-        for i in range(1, 7)
+        [[InlineKeyboardButton(str(i), callback_data=f"portions_{i}")] for i in range(1, 7)],
+        [InlineKeyboardButton("⬅️ Back to Food (**Add more food**)", callback_data="continue_shopping")]
     ]
-    
+   
     number_markup = InlineKeyboardMarkup(number_keyboard)
     # message = f"✅ You selected *{food.name}*\nPrice: ₦{food.price}\n\nHow many portions would you like? (Type a number)"
     # keyboard = [[InlineKeyboardButton()]
