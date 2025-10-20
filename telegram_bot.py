@@ -766,6 +766,8 @@ async def handle_view_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     keyboard.append([InlineKeyboardButton("🧹 Clear Cart", callback_data="clear_cart")])
     
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
     await update.message.reply_text(message, parse_mode="Markdown", reply_markup=reply_markup)
 
 async def handle_manage_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -773,7 +775,7 @@ async def handle_manage_item(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer()
     
     item_id = int(query.data.split("_")[1])
-    item = await get_cart_item(item_id)  # Create this helper to fetch a single item
+    item = await get_cart_items(item_id)  # Create this helper to fetch a single item
 
     if not item:
         await query.edit_message_text("⚠️ Item not found in your cart.")
