@@ -71,7 +71,10 @@ class OrderItem(models.Model):
     price_at_order_time = models.DecimalField(max_digits=8, decimal_places=2)
     vendor = models.ForeignKey(Vendors, related_name='vendors', on_delete=models.CASCADE)
     # paid = models.BooleanField(default=False)
-
+    
+    def __str__(self):
+        return f"{self.order} - {self.vendor.name} - {self.food} - {self.quantity} - {self.price_at_order_time}"
+    
 class Location(models.Model):
     name = models.CharField(max_length=20, unique=True )
     
@@ -81,7 +84,7 @@ class Location(models.Model):
 
 class Waiter(models.Model):
     name = models.CharField(max_length=20)
-    user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE)
+    # user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE)
     phone_no = models.IntegerField()
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
     
