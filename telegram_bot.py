@@ -474,19 +474,23 @@ async def handle_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     vendor_id = context.user_data.get("last_selected_vendor")
     
     
+    context.user_data['total_plates'] = plates
+    context.user_data['current_plate'] = 1
+    context.user_data['filled_plates'] = 0
+    context.user_data['cart'] = {}
     
-    if "cart" not in context.user_data:
-        context.user_data['cart'] = {}
-        context.user_data['total_plates'] = 0
-        context.user_data['current_plate'] = 0
+    # if "cart" not in context.user_data:
+    #     context.user_data['cart'] = {}
+    #     context.user_data['total_plates'] = 0
+    #     context.user_data['current_plate'] = 0
         
-    start_plate = context.user_data['total_plates'] + 1
-    end_plate = context.user_data['total_plates'] + plates
-    for i in range(start_plate, end_plate + 1):
-        context.user_data['cart'][i] = []
+    # start_plate = context.user_data['total_plates'] + 1
+    # end_plate = context.user_data['total_plates'] + plates
+    # for i in range(start_plate, end_plate + 1):
+    #     context.user_data['cart'][i] = []
         
-    context.user_data['total_plates'] = end_plate
-    context.user_data['current_plate'] = start_plate
+    # context.user_data['total_plates'] = end_plate
+    # context.user_data['current_plate'] = start_plate
         
     # context.user_data['total_plates'] = plates
     # context.user_data['current_plate'] = 1
@@ -494,6 +498,7 @@ async def handle_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     vendor = await get_vendor_by_id(vendor_id)
     foods = await get_foods_by_vendor(vendor)
+    
     if foods:
         message = f"🍽 *First plate * *{vendor.name} Menu:*\n\n👇 Tap a food item to order:"
         keyboard = [[InlineKeyboardButton(f"{name} - ₦{price}", callback_data=f"food_{food_id}")]
@@ -624,34 +629,66 @@ async def handle_next_plate(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     current = context.user_data["current_plate"]
     total = context.user_data["total_plates"]
-
-    if current < total:
-        context.user_data["current_plate"] += 1
-        vendor_id = context.user_data.get("last_selected_vendor")
-        vendor = await get_vendor_by_id(vendor_id)
-        foods = await get_foods_by_vendor(vendor)
-
-        # Build food buttons
-        keyboard = [
-            [InlineKeyboardButton(f"{name} - ₦{price}", callback_data=f"food_{food_id}")]
-            for food_id, name, price in foods
-        ]
-        markup = InlineKeyboardMarkup(keyboard)
-
-        # Ask user to select food for the new plate
+    filled = context.user_data['filled_plates']
+    
+    if filled >= total:
         await query.edit_message_text(
-            f"➡️ Now filling Plate {context.user_data['current_plate']} of {total}\n\n"
-            f"🍽 *{vendor.name} Menu:*",
-            parse_mode="Markdown",
-            reply_markup=markup
-        )
-    else:
-        await query.edit_message_text(
-            "✅ All plates completed!\n🧾 Ready to checkout?",
+            "✅ All plates filled!\n🧾 Ready to checkout?",
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🧾Checkout", callback_data= "checkout")]
+                [InlineKeyboardButton("🧾 Checkout", callback_data="checkout")]
             ])
         )
+        return
+    
+    
+    context.user_data['current_plate'] += 1
+    vendor_id = context.user_data.get("last_selected_vendor")
+    vendor = await get_vendor_by_id(vendor_id)
+    foods = await get_foods_by_vendor(vendor)
+
+    keyboard = [
+        [InlineKeyboardButton(f"{name} - ₦{price}", callback_data=f"food_{food_id}")]
+        for food_id, name, price in foods
+    ]
+    markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(
+        f"🍽 Now filling Plate {context.user_data['current_plate']} of {total}\n👇 Select a food item:",
+        parse_mode="Markdown",
+        reply_markup=markup
+    )
+    
+    
+    
+    
+    
+    # if current < total:
+    #     context.user_data["current_plate"] += 1
+    #     vendor_id = context.user_data.get("last_selected_vendor")
+    #     vendor = await get_vendor_by_id(vendor_id)
+    #     foods = await get_foods_by_vendor(vendor)
+
+    #     # Build food buttons
+    #     keyboard = [
+    #         [InlineKeyboardButton(f"{name} - ₦{price}", callback_data=f"food_{food_id}")]
+    #         for food_id, name, price in foods
+    #     ]
+    #     markup = InlineKeyboardMarkup(keyboard)
+
+    #     # Ask user to select food for the new plate
+    #     await query.edit_message_text(
+    #         f"➡️ Now filling Plate {context.user_data['current_plate']} of {total}\n\n"
+    #         f"🍽 *{vendor.name} Menu:*",
+    #         parse_mode="Markdown",
+    #         reply_markup=markup
+    #     )
+    # else:
+    #     await query.edit_message_text(
+    #         "✅ All plates completed!\n🧾 Ready to checkout?",
+    #         reply_markup=InlineKeyboardMarkup([
+    #             [InlineKeyboardButton("🧾Checkout", callback_data= "checkout")]
+    #         ])
+    #     )
         
 async def handle_cart_or_continue(update: Update, context: ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
@@ -714,6 +751,8 @@ async def handle_cart_or_continue(update: Update, context: ContextTypes.DEFAULT_
         total_sum = 0
     
         current_plate = None
+        context.user_data['filled_plates'] += 1
+
         for i, item in enumerate(cart, 1):
             food_name = item.food.name
             vendor_name = item.vendor.name
