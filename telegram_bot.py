@@ -1282,8 +1282,11 @@ if __name__ == '__main__':
     },
     fallbacks=[CommandHandler("cancel", cancel)],
     )
+    
     conv_handler = ConversationHandler(
-        entry_points=[MessageHandler(filters.Regex("(?i)^checkout$"), checkout)],
+        entry_points=[
+            CallbackQueryHandler(checkout, pattern="^checkout$")
+        ],
         states={
             HALL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_hall)],
             ADDRESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_address)],
