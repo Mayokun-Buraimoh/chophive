@@ -626,14 +626,27 @@ async def handle_next_plate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    context.user_data['filled_plates'] += 1
-    current = context.user_data["current_plate"]
+    if "cart" not in context.user_data:
+        context.user_data["cart"] = {}
+
+    if "filled_plates" not in context.user_data:
+        context.user_data["filled_plates"] = 0
+
+    if "total_plates" not in context.user_data:
+        context.user_data["total_plates"] = 1
+        
     total = context.user_data["total_plates"]
+    context.user_data['filled_plates'] += 1
+    filled = context.user_data["filled_plates"]
     
     
-    if context.user_data["filled_plates"] >= total:
-        await query.edit_message_text(query, "✅ All plates filled!\n🧾 Ready to checkout?",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🧾 Checkout", callback_data="checkout")]])
+    
+    if filled >= total:
+        await query.edit_message_text(
+            "✅ All plates filled!\n🧾 Ready to checkout?",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🧾 Checkout", callback_data="checkout")]
+            ])
         )
         return
     # if filled >= total:
@@ -645,8 +658,13 @@ async def handle_next_plate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #     )
     #     return
     
+    next_plate = filled + 1
+    context.user_data["current_plate"] = next_plate
     
-    context.user_data["current_plate"] = context.user_data['filled_plates'] + 1
+    if next_plate not in context.user_data["cart"]:
+        context.user_data["cart"][next_plate] = []
+        
+    # context.user_data["current_plate"] = context.user_data['filled_plates'] + 1
     vendor_id = context.user_data.get("last_selected_vendor")
     vendor = await get_vendor_by_id(vendor_id)
     foods = await get_foods_by_vendor(vendor)
