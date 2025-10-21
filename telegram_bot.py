@@ -501,7 +501,7 @@ async def handle_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     foods = await get_foods_by_vendor(vendor)
     
     if foods:
-        message = f"🍽 Plate {context.user_data['current_plate']} Menu= {vendor.name}*\n\n👇 Tap a food item to order:"
+        message = f"🍽 *First plate * *{vendor.name} Menu:*\n\n👇 Tap a food item to order:"
         keyboard = [[InlineKeyboardButton(f"{name} - ₦{price}", callback_data=f"food_{food_id}")]
                     for food_id, name, price in foods]
         
@@ -648,7 +648,7 @@ async def handle_next_plate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['filled_plates'] += 1
     
     if context.user_data["filled_plates"] >= total:
-        await  query.edit_message_text(query, "✅ All plates filled!\n🧾 Ready to checkout?",
+        await query.edit_message_text(query, "✅ All plates filled!\n🧾 Ready to checkout?",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🧾 Checkout", callback_data="checkout")]])
         )
         return
