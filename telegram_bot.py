@@ -727,7 +727,7 @@ async def handle_view_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
     cart = await get_cart_items(telegram_id)
     if not cart:
-        await update.message.reply_text("🛒 Your cart is empty.", reply_markup=reply_markup)
+        await update.message.reply_text("🛒 Your cart is empty.")
         return
 
     # food_names = [item['name'] for item in cart]
@@ -776,9 +776,10 @@ async def handle_view_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message += f"\n\n💰 *Total: ₦{total_sum + delivery_fee + total_plate_cost}*\n"
     message += "🚫 *Tap any item below to edit or remove it*"
     
-    keyboard.append[
-        [InlineKeyboardButton("🧹 Clear Cart", callback_data="clear_cart")]
-    ]
+    keyboard.append([
+        InlineKeyboardButton("🧹 Clear Cart", callback_data="clear_cart")
+    ])
+
 
                     
     
