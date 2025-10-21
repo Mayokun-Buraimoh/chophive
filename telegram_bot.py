@@ -846,8 +846,14 @@ async def handle_edit_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     item_id = int(query.data.split("_")[1])
-    context.user_data["edit_item_id"] = item_id  # mark edit mode
+    item = await get_cart_item(item_id)
 
+    if not item:
+        await query.edit_message_text("⚠️ Item not found.")
+        return
+    
+    context.user_data["edit_item_id"] = item_id
+    
     number_keyboard = [
         [InlineKeyboardButton(str(i), callback_data=f"edit_portions_{i}")] for i in range(1, 7)
     ]
@@ -1218,6 +1224,7 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_next_plate, pattern="^next_plate$"))
     app.add_handler(CallbackQueryHandler(handle_cart_or_continue, pattern="^(add_to_cart|continue_shopping|checkout)$"))
     app.add_handler(CallbackQueryHandler(handle_manage_item, pattern="^manage_\d+$"))
+    app.add_handler(CallbackQueryHandler(handle_view_cart, pattern="^handle_view_cart$"))
     app.add_handler(CallbackQueryHandler(handle_delete_item, pattern="^delete_\d+$"))
     app.add_handler(CallbackQueryHandler(handle_portion_input, pattern= "^(portions_|edit_portions_)"))
 
