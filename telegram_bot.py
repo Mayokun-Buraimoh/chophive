@@ -546,12 +546,18 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
         # Check if user is editing or adding
         
     
-        if query.data == "go_back_to_food":
-            await handle_food_selection(update, context)
-            return
+        # if query.data == "go_back_to_food":
+        #     await handle_food_selection(update, context)
+        #     return
         
         editing = data.startswith("edit_portions_")
-        portions = int(data.replace("edit_portions_", "").replace("portions_", ""))
+        
+        if editing:
+            portions = int(data.replace("edit_portions_", ""))
+        else:
+            portions = int(data.replace("portions_", ""))
+
+        # portions = int(data.replace("edit_portions_", "").replace("portions_", ""))
         
         if editing:
             item_id = context.user_data.get("edit_item_id")
@@ -859,8 +865,8 @@ async def handle_edit_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     
     number_keyboard.append([InlineKeyboardButton("⬅️ Back", callback_data="continue_shopping")])
-    reply_markup = InlineKeyboardButton(number_keyboard)
-    
+    reply_markup = InlineKeyboardMarkup(number_keyboard)
+
     await query.edit_message_text(
         "✏️ *Select new portion count for this item:*",
         parse_mode="Markdown",
@@ -1225,6 +1231,7 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_cart_or_continue, pattern="^(add_to_cart|continue_shopping|checkout)$"))
     app.add_handler(CallbackQueryHandler(handle_manage_item, pattern="^manage_\d+$"))
     app.add_handler(CallbackQueryHandler(handle_view_cart, pattern="^handle_view_cart$"))
+    app.add_handler(CallbackQueryHandler(handle_edit_item, pattern="^edit_"))
     app.add_handler(CallbackQueryHandler(handle_delete_item, pattern="^delete_\d+$"))
     app.add_handler(CallbackQueryHandler(handle_portion_input, pattern= "^(portions_|edit_portions_)"))
 
