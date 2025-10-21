@@ -198,6 +198,16 @@ def get_cart_items(telegram_id):
     )
 
 @sync_to_async(thread_sensitive=True)
+def get_cart_item(item_id):
+    return Cart.objects.select_related('food__vendor', 'vendor').filter(id=item_id).first()
+
+@sync_to_async(thread_sensitive=True)
+def delete_cart_item(item_id):
+    return Cart.objects.filter(id=item_id).delete()
+
+
+    
+@sync_to_async(thread_sensitive=True)
 def clear_cart_items(telegram_id):
     user = TelegramUser.objects.filter(telegram_id=telegram_id).first()
     if user:
@@ -763,21 +773,26 @@ async def handle_view_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
   
     message += f" *Delivery fee is {delivery_fee}*\n"
     message += f" *Cost of the pack {total_plate_cost}*\n"
-    message += f"\n\n💰 *Total: ₦{total_sum + delivery_fee + total_plate_cost}*"
+    message += f"\n\n💰 *Total: ₦{total_sum + delivery_fee + total_plate_cost}*\n"
     message += "🚫 *Tap any item below to edit or remove it*"
     
-    keyboard.append([InlineKeyboardButton("🧹 Clear Cart", callback_data="clear_cart")])
+    keyboard.append[
+        [InlineKeyboardButton("🧹 Clear Cart", callback_data="clear_cart")]
+    ]
+
+                    
     
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(message, parse_mode="Markdown", reply_markup=reply_markup)
+
 
 async def handle_manage_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
     item_id = int(query.data.split("_")[1])
-    item = await get_cart_items(item_id)  # Create this helper to fetch a single item
+    item = await get_cart_item(item_id)  # Create this helper to fetch a single item
 
     if not item:
         await query.edit_message_text("⚠️ Item not found in your cart.")
@@ -801,6 +816,20 @@ async def handle_manage_item(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     await query.edit_message_text(text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
     
+async def handle_delete_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    item_id = int(query.data.split("_")[1])
+    
+    # Delete from database (implement helper)
+    await delete_cart_item(item_id)
+    
+    await query.edit_message_text("🗑 Item deleted successfully!")
+    
+    # Optionally refresh the cart
+    await handle_view_cart(update, context)
+
 async def clear_cart(update:Update, context:ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
     await clear_cart_items(telegram_id)
@@ -1141,7 +1170,9 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_portion_input, pattern="^portions_"))
     app.add_handler(CallbackQueryHandler(handle_next_plate, pattern="^next_plate$"))
     app.add_handler(CallbackQueryHandler(handle_cart_or_continue, pattern="^(add_to_cart|continue_shopping|checkout)$"))
-    app.add_handler(CallbackQueryHandler(handle_manage_item, pattern=r"^manage_\d+$"))
+    app.add_handler(CallbackQueryHandler(handle_manage_item, pattern="^manage_\d+$"))
+    app.add_handler(CallbackQueryHandler(handle_delete_item, pattern="^delete_\d+$"))
+
  
     app.add_error_handler(error)
     
