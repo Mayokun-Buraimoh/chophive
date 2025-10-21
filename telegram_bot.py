@@ -588,7 +588,7 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
         
         total_price = food['price'] * portions
         plate_no = context.user_data["current_plate"]
-        
+        await save_cart_item(telegram_id, food['id'], portions, vendor_id, plates)
         # context.user_data['portion_count'] = portions
         # context.user_data["cart"][plate_no].append({
         #     "food": food["name"],
@@ -599,9 +599,17 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
 
         if "cart" not in context.user_data:
             context.user_data["cart"] = {}
+            
+            total_existing = len(context.user_data["cart"])
+            for i in range(total_existing + 1, total_existing + plates + 1):
+                context.user_data["cart"][i] = []
 
-        if plate_no not in context.user_data["cart"]:
-            context.user_data["cart"][plate_no] = []
+            context.user_data["total_plates"] = total_existing + plates
+            context.user_data["current_plate"] = total_existing + 1
+            context.user_data["filled_plates"] = total_existing
+
+        # if plate_no not in context.user_data["cart"]:
+        #     context.user_data["cart"][plate_no] = []
 
 # 🧾 Add food item
         context.user_data["cart"][plate_no].append({
@@ -643,9 +651,10 @@ async def handle_next_plate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
+    context.user_data['filled_plates'] += 1
     current = context.user_data["current_plate"]
     total = context.user_data["total_plates"]
-    context.user_data['filled_plates'] += 1
+    
     
     if context.user_data["filled_plates"] >= total:
         await query.edit_message_text(query, "✅ All plates filled!\n🧾 Ready to checkout?",
@@ -662,7 +671,7 @@ async def handle_next_plate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #     return
     
     
-    context.user_data['current_plate'] += 1
+    context.user_data["current_plate"] = context.user_data['filled_plates'] + 1
     vendor_id = context.user_data.get("last_selected_vendor")
     vendor = await get_vendor_by_id(vendor_id)
     foods = await get_foods_by_vendor(vendor)
