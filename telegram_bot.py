@@ -1230,14 +1230,15 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_plate_number, pattern="^plates_"))
     app.add_handler(CallbackQueryHandler(handle_food_selection, pattern="^food_"))
     # app.add_handler(CallbackQueryHandler(go_back_to_food, pattern="^go_back_to_food$"))
-    app.add_handler(CallbackQueryHandler(handle_portion_input, pattern="^portions_"))
+    # app.add_handler(CallbackQueryHandler(handle_portion_input, pattern="^portions_"))
+    app.add_handler(CallbackQueryHandler(handle_portion_input, pattern= "^(portions_|edit_portions_)"))
     app.add_handler(CallbackQueryHandler(handle_next_plate, pattern="^next_plate$"))
     app.add_handler(CallbackQueryHandler(handle_cart_or_continue, pattern="^(add_to_cart|continue_shopping|checkout)$"))
     app.add_handler(CallbackQueryHandler(handle_manage_item, pattern="^manage_\d+$"))
     app.add_handler(CallbackQueryHandler(handle_view_cart, pattern="^handle_view_cart$"))
     app.add_handler(CallbackQueryHandler(handle_edit_item, pattern="^edit_"))
     app.add_handler(CallbackQueryHandler(handle_delete_item, pattern="^delete_\d+$"))
-    app.add_handler(CallbackQueryHandler(handle_portion_input, pattern= "^(portions_|edit_portions_)"))
+    
 
 
  
