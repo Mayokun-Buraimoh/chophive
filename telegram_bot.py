@@ -541,104 +541,79 @@ async def handle_food_selection(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup=number_markup
     )
 
-
 async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    
     try:
-        # portions = int(update.message.text.strip())
         query = update.callback_query
         await query.answer()
         data = query.data
-        
-        # Check if user is editing or adding
-        
-    
-        # if query.data == "go_back_to_food":
-        #     await handle_food_selection(update, context)
-        #     return
-        
-        editing = data.startswith("edit_portions_")
-        
-        if editing:
-            portions = int(data.replace("edit_portions_", ""))
-        else:
-            portions = int(data.replace("portions_", ""))
 
-        # portions = int(data.replace("edit_portions_", "").replace("portions_", ""))
-        
+        # Determine if user is editing
+        editing = data.startswith("edit_portions_")
+        portions = int(data.replace("edit_portions_", "").replace("portions_", ""))
+
         if editing:
             item_id = context.user_data.get("edit_item_id")
-            # await edit_cart_item(item_id, portions)
-
             if not item_id:
                 await query.edit_message_text("⚠️ No item found to edit.")
                 return
-            
+
             await edit_cart_item(item_id, portions)
-        
-    
             await query.edit_message_text(f"✅ Updated to {portions} portion(s)!")
             await handle_view_cart(update, context)
             return
-        
-        food = context.user_data.get('selected_food')
-        if not food:
-            await update.message.reply_text("❗ You haven't selected a food item yet.")
-            return
-        
-        total_price = food['price'] * portions
-        plate_no = context.user_data["current_plate"]
-        await save_cart_item(telegram_id, food['id'], portions, vendor_id, plates)
-        # context.user_data['portion_count'] = portions
-        # context.user_data["cart"][plate_no].append({
-        #     "food": food["name"],
-        #     "portion_count": portions,
-        #     "total_price": total_price,
-        # })
-        # context.user_data.update({'portion_count': portions, 'total_price': total_price})
 
+        # --- NEW ITEM FLOW ---
+        telegram_id = update.effective_user.id
+        vendor_id = context.user_data.get("last_selected_vendor")
+        plates = context.user_data.get("total_plates", 1)
+        food = context.user_data.get("selected_food")
+
+        if not food:
+            await query.message.reply_text("❗ You haven't selected a food item yet.")
+            return
+
+        total_price = food["price"] * portions
+
+        # Ensure cart structure exists
         if "cart" not in context.user_data:
             context.user_data["cart"] = {}
-            
-            total_existing = len(context.user_data["cart"])
-            for i in range(total_existing + 1, total_existing + plates + 1):
-                context.user_data["cart"][i] = []
+            context.user_data["total_plates"] = plates
+            context.user_data["current_plate"] = 1
+            context.user_data["filled_plates"] = 0
 
-            context.user_data["total_plates"] = total_existing + plates
-            context.user_data["current_plate"] = total_existing + 1
-            context.user_data["filled_plates"] = total_existing
+        plate_no = context.user_data["current_plate"]
 
-        # if plate_no not in context.user_data["cart"]:
-        #     context.user_data["cart"][plate_no] = []
+        # Save to DB (pass plate_no, not "plates")
+        await save_cart_item(telegram_id, food["id"], portions, vendor_id, plate_no)
 
-# 🧾 Add food item
-        context.user_data["cart"][plate_no].append({
+        # Save locally
+        context.user_data["cart"].setdefault(plate_no, []).append({
             "food": food["name"],
             "portion_count": portions,
             "total_price": total_price,
         })
 
-        context.user_data['portion_count'] = portions
+        context.user_data["portion_count"] = portions
 
         keyboard = [
             [InlineKeyboardButton("🛒 Add to Cart", callback_data="add_to_cart")],
-            [InlineKeyboardButton("🍽 Add more food *Go back* ", callback_data="continue_shopping")],
-            [InlineKeyboardButton("🧾 Checkout", callback_data="checkout")],
-            [InlineKeyboardButton("🧾 Next Plate", callback_data="next_plate")]
+            [InlineKeyboardButton("🍽 Add more food", callback_data="continue_shopping")],
+            [InlineKeyboardButton("🧾 Next Plate", callback_data="next_plate")],
+            [InlineKeyboardButton("✅ Checkout", callback_data="checkout")]
         ]
-        # keyboard.append(
-        #     [InlineKeyboardButton("⬅️ Back", callback_data="go_back_to_food")]
-        # )
         markup = InlineKeyboardMarkup(keyboard)
-        
-        
+
         await query.message.reply_text(
             f"🧾 *{food['name']}* x {portions} portion(s)\nTotal: ₦{total_price}\n\nWhat next?",
             parse_mode="Markdown",
             reply_markup=markup
         )
+
     except ValueError:
-        await update.message.reply_text("❗ Please type a valid number for portions.")
+        if update.message:
+            await update.message.reply_text("❗ Please type a valid number for portions.")
+        elif update.callback_query:
+            await update.callback_query.message.reply_text("❗ Please select a valid portion number.")
 
 # async def go_back_to_food(update: Update, context: ContextTypes.DEFAULT_TYPE):
 #     query = update.callback_query
