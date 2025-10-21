@@ -201,6 +201,7 @@ def get_cart_items(telegram_id):
 def get_cart_item(item_id):
     return Cart.objects.select_related('food__vendor', 'vendor').filter(id=item_id).first()
 
+@sync_to_async(thread_sensitive=True)
 def edit_cart_item(item_id, portions):
     return Cart.objects.filter(id=item_id).update(portions=portions)
 
@@ -561,17 +562,15 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
         
         if editing:
             item_id = context.user_data.get("edit_item_id")
-            await edit_cart_item(item_id, portions)
+            # await edit_cart_item(item_id, portions)
 
             if not item_id:
                 await query.edit_message_text("⚠️ No item found to edit.")
                 return
-        
             
             await edit_cart_item(item_id, portions)
         
-        
-        
+    
             await query.edit_message_text(f"✅ Updated to {portions} portion(s)!")
             await handle_view_cart(update, context)
             return
