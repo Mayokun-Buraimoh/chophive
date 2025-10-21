@@ -477,7 +477,8 @@ async def handle_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     context.user_data['total_plates'] = plates
     context.user_data['current_plate'] = 1
     context.user_data['filled_plates'] = 0
-    context.user_data['cart'] = {}
+    context.user_data["cart"] = {i: [] for i in range(1, plates + 1)}
+
     
     # if "cart" not in context.user_data:
     #     context.user_data['cart'] = {}
@@ -588,13 +589,28 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
         total_price = food['price'] * portions
         plate_no = context.user_data["current_plate"]
         
-        context.user_data['portion_count'] = portions
+        # context.user_data['portion_count'] = portions
+        # context.user_data["cart"][plate_no].append({
+        #     "food": food["name"],
+        #     "portion_count": portions,
+        #     "total_price": total_price,
+        # })
+        # context.user_data.update({'portion_count': portions, 'total_price': total_price})
+
+        if "cart" not in context.user_data:
+            context.user_data["cart"] = {}
+
+        if plate_no not in context.user_data["cart"]:
+            context.user_data["cart"][plate_no] = []
+
+# 🧾 Add food item
         context.user_data["cart"][plate_no].append({
             "food": food["name"],
             "portion_count": portions,
             "total_price": total_price,
         })
-        # context.user_data.update({'portion_count': portions, 'total_price': total_price})
+
+        context.user_data['portion_count'] = portions
 
         keyboard = [
             [InlineKeyboardButton("🛒 Add to Cart", callback_data="add_to_cart")],
