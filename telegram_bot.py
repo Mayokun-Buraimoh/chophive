@@ -436,7 +436,7 @@ async def handle_vendor_selection(update: Update, context: ContextTypes.DEFAULT_
      
     number_markup = InlineKeyboardMarkup(number_keyboard)
     await query.edit_message_text(
-        f"🍽 How many plates would you like to order from *{vendor.name}*?",
+        f"🍽 How many packs of food would you like to order from *{vendor.name}*?",
         parse_mode="Markdown",
         reply_markup=number_markup
     )
@@ -516,7 +516,7 @@ async def handle_food_selection(update: Update, context: ContextTypes.DEFAULT_TY
     # keyboard = [[InlineKeyboardButton()]
     #     markup = InlineKeyboardMarkup(keyboard)]
     await query.edit_message_text(
-        f"✅ You selected *{food.name}*\nPrice: ₦{food.price}\n\nHow many portions would you like? (Type a number)",
+        f"✅ You selected *{food.name}*\nPrice: ₦{food.price}\n\n*How many spoons / portions would you like? (Select a number)*",
         parse_mode="Markdown",
         reply_markup=number_markup
     )
@@ -552,7 +552,7 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
 
         keyboard = [
             [InlineKeyboardButton("🛒 Add to Cart", callback_data="add_to_cart")],
-            [InlineKeyboardButton("🍽 Add more food(*Go back*)", callback_data="continue_shopping")],
+            [InlineKeyboardButton("🍽 Add more food *Go back* ", callback_data="continue_shopping")],
             [InlineKeyboardButton("🧾 Checkout", callback_data="checkout")],
             [InlineKeyboardButton("🧾 Next Plate", callback_data="next_plate")]
         ]
@@ -608,7 +608,7 @@ async def handle_next_plate(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(
             "✅ All plates completed!\n🧾 Ready to checkout?",
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🧾 Checkout", callback_data="checkout")]
+                [InlineKeyboardButton("🧾Checkout", callback_data= "checkout")]
             ])
         )
         
@@ -815,8 +815,15 @@ async def checkout(update:Update, context:ContextTypes.DEFAULT_TYPE):
     cart = await get_cart_items(telegram_id)
     
     
+    if hasattr(update, "callback_query") and update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        target_message = query.message
+    else:
+        target_message = update.message
+        
     if not cart:
-        await update.message.reply_text(
+        await target_message.reply_text(
             " your cart is empty, add items to checkout",
             # reply_markup=reply_markup
         )
