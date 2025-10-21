@@ -808,7 +808,12 @@ async def clear_cart(update:Update, context:ContextTypes.DEFAULT_TYPE):
     context.user_data['total_plates'] = 0
     context.user_data['current_plate'] = 0
     
-    await update.message.reply_text("🛒 You have cleared your cart, continue shopping ")
+    if update.message:
+        await update.message.reply_text("🛒 You have cleared your cart, continue shopping.")
+    elif update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.message.reply_text("🛒 You have cleared your cart, continue shopping.")
     
 async def checkout(update:Update, context:ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
