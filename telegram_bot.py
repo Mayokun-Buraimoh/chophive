@@ -1219,6 +1219,8 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_cart_or_continue, pattern="^(add_to_cart|continue_shopping|checkout)$"))
     app.add_handler(CallbackQueryHandler(handle_manage_item, pattern="^manage_\d+$"))
     app.add_handler(CallbackQueryHandler(handle_delete_item, pattern="^delete_\d+$"))
+    app.add_handler(CallbackQueryHandler(handle_portion_input, pattern= "^(portions_|edit_portions_)"))
+
 
  
     app.add_error_handler(error)
