@@ -641,20 +641,23 @@ async def handle_next_plate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if "total_plates" not in context.user_data:
         context.user_data["total_plates"] = 1
         
-    total = context.user_data["total_plates"]
-    context.user_data['filled_plates'] += 1
+    context.user_data["filled_plates"] += 1
     filled = context.user_data["filled_plates"]
+    total = context.user_data["total_plates"]
     
     
     
+    # If user has filled all existing plates, add a new one
     if filled >= total:
-        await query.edit_message_text(
-            "✅ All plates filled!\n🧾 Ready to checkout?",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🧾 Checkout", callback_data="checkout")]
-            ])
-        )
-        return
+        context.user_data["total_plates"] += 1
+        next_plate = context.user_data["total_plates"]
+        context.user_data["current_plate"] = next_plate
+        context.user_data["cart"][next_plate] = []
+    else:
+        next_plate = filled + 1
+        context.user_data["current_plate"] = next_plate
+        if next_plate not in context.user_data["cart"]:
+            context.user_data["cart"][next_plate] = []
     # if filled >= total:
     #     await query.edit_message_text(
     #         "✅ All plates filled!\n🧾 Ready to checkout?",
@@ -664,14 +667,14 @@ async def handle_next_plate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #     )
     #     return
     
-    next_plate = filled + 1
-    context.user_data["current_plate"] = next_plate
+    # next_plate = filled + 1
+    # context.user_data["current_plate"] = next_plate
     
-    if "cart" not in context.user_data:
-        context.user_data["cart"] = {}
+    # if "cart" not in context.user_data:
+    #     context.user_data["cart"] = {}
         
-    if next_plate not in context.user_data["cart"]:
-        context.user_data["cart"][next_plate] = []
+    # if next_plate not in context.user_data["cart"]:
+    #     context.user_data["cart"][next_plate] = []
         
     # context.user_data["current_plate"] = context.user_data['filled_plates'] + 1
     vendor_id = context.user_data.get("last_selected_vendor")
