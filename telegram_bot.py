@@ -1018,7 +1018,7 @@ async def checkout(update:Update, context:ContextTypes.DEFAULT_TYPE):
         # ]
     # reply_markup = ReplyKeyboardMarkup(location_names, resize_keyboard=True, one_time_keyboard=True)
 
-    await update.message.reply_text(
+    await target_message.reply_text(
         "🏠 Please select your hall \n",
         reply_markup = reply_markup
         # parse_mode="Markdown"
@@ -1308,6 +1308,7 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_portion_input, pattern="^edit_portions_"))
     app.add_handler(CallbackQueryHandler(handle_next_plate, pattern="^next_plate$"))
     app.add_handler(CallbackQueryHandler(handle_cart_or_continue, pattern="^(add_to_cart|continue_shopping|checkout)$"))
+    app.add_handler(CallbackQueryHandler(checkout, pattern="^checkout$"))
     app.add_handler(CallbackQueryHandler(handle_manage_item, pattern="^manage_\d+$"))
     app.add_handler(CallbackQueryHandler(handle_view_cart, pattern="^handle_view_cart$"))
     app.add_handler(CallbackQueryHandler(handle_edit_item, pattern="^edit_"))
