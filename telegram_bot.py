@@ -508,7 +508,9 @@ async def handle_food_selection(update: Update, context: ContextTypes.DEFAULT_TY
         [InlineKeyboardButton(str(i), callback_data=f"portions_{i}")]
         for i in range(1, 7)
     ]
-    
+    number_keyboard.append(
+            [InlineKeyboardButton("⬅️ Back", callback_data="continue_shopping")]
+        )
     number_markup = InlineKeyboardMarkup(number_keyboard)
     # message = f"✅ You selected *{food.name}*\nPrice: ₦{food.price}\n\nHow many portions would you like? (Type a number)"
     # keyboard = [[InlineKeyboardButton()]
@@ -741,7 +743,7 @@ async def handle_view_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if current_plate != item.plate_no:
             current_plate = item.plate_no
             plate_count += 1
-            message += f"\n Plate {current_plate}:\n"
+            message += f"\n *Plate {current_plate}:*\n"
 
         
         # price = price_map.get(food_name, 0)  # fallback to 0 if missing
