@@ -477,8 +477,7 @@ async def handle_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     context.user_data['total_plates'] = plates
     context.user_data['current_plate'] = 1
     context.user_data['filled_plates'] = 0
-    context.user_data["cart"] = {i: [] for i in range(1, plates + 1)}
-
+    context.user_data['cart'] = {}
     
     # if "cart" not in context.user_data:
     #     context.user_data['cart'] = {}
