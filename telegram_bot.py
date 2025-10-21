@@ -561,6 +561,8 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
         
         if editing:
             item_id = context.user_data.get("edit_item_id")
+            await edit_cart_item(item_id, portions)
+
             if not item_id:
                 await query.edit_message_text("⚠️ No item found to edit.")
                 return
@@ -872,6 +874,8 @@ async def handle_edit_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown",
         reply_markup=reply_markup
     )
+    
+    
     # Optionally refresh the cart
  
 
