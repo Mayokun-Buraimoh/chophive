@@ -201,6 +201,9 @@ def get_cart_items(telegram_id):
 def get_cart_item(item_id):
     return Cart.objects.select_related('food__vendor', 'vendor').filter(id=item_id).first()
 
+def edit_cart_item(item_id, portions):
+    return Cart.objects.filter(id=item_id).update(portions=portions)
+
 @sync_to_async(thread_sensitive=True)
 def delete_cart_item(item_id):
     return Cart.objects.filter(id=item_id).delete()
@@ -538,12 +541,33 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
         # portions = int(update.message.text.strip())
         query = update.callback_query
         await query.answer()
+        data = query.data
         
+        # Check if user is editing or adding
+        
+    
         if query.data == "go_back_to_food":
             await handle_food_selection(update, context)
             return
-    
-        portions = int(query.data.replace("portions_", ""))
+        
+        editing = data.startswith("edit_portions_")
+        portions = int(data.replace("edit_portions_", "").replace("portions_", ""))
+        
+        if editing:
+            item_id = context.user_data.get("edit_item_id")
+            if not item_id:
+                await query.edit_message_text("⚠️ No item found to edit.")
+                return
+        
+            
+            await edit_cart_item(item_id, portions)
+        
+        
+        
+            await query.edit_message_text(f"✅ Updated to {portions} portion(s)!")
+            await handle_view_cart(update, context)
+            return
+        
         food = context.user_data.get('selected_food')
         if not food:
             await update.message.reply_text("❗ You haven't selected a food item yet.")
@@ -812,11 +836,33 @@ async def handle_manage_item(update: Update, context: ContextTypes.DEFAULT_TYPE)
             InlineKeyboardButton("✏️ Edit Quantity", callback_data=f"edit_{item.id}"),
             InlineKeyboardButton("🗑 Delete Item", callback_data=f"delete_{item.id}")
         ],
-        [InlineKeyboardButton("🔙 Back to Cart", callback_data="continue_shopping")]
+        [InlineKeyboardButton("🔙 Back to Cart", callback_data="handle_view_cart")]
     ]
 
     await query.edit_message_text(text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
     
+async def handle_edit_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    item_id = int(query.data.split("_")[1])
+    context.user_data["edit_item_id"] = item_id  # mark edit mode
+
+    number_keyboard = [
+        [InlineKeyboardButton(str(i), callback_data=f"edit_portions_{i}")] for i in range(1, 7)
+    ]
+    
+    number_keyboard.append([InlineKeyboardButton("⬅️ Back", callback_data="continue_shopping")])
+    reply_markup = InlineKeyboardButton(number_keyboard)
+    
+    await query.edit_message_text(
+        "✏️ *Select new portion count for this item:*",
+        parse_mode="Markdown",
+        reply_markup=reply_markup
+    )
+    # Optionally refresh the cart
+ 
+
 async def handle_delete_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
