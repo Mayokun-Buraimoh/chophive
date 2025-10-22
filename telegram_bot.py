@@ -1021,7 +1021,7 @@ async def checkout(update:Update, context:ContextTypes.DEFAULT_TYPE):
     # location_names = [[loc["name"]] for loc in locations]  # make it button-friendly
     
     
-    # reply_markup = InlineKeyboardMarkup(keyboard)
+    reply_markup = InlineKeyboardMarkup(keyboard)
     
     # reply_markup = [
             # [InlineKeyboardButton("⬅️ Back to Food", callback_data="go_back_to_food")],
@@ -1032,16 +1032,12 @@ async def checkout(update:Update, context:ContextTypes.DEFAULT_TYPE):
         # ]
     # reply_markup = ReplyKeyboardMarkup(location_names, resize_keyboard=True, one_time_keyboard=True)
 
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=(
-            "🕒 Please enter your *delivery address* in this format:\n\n"
-            "`Room 202`"
-        ),
-        parse_mode="Markdown",
-        reply_markup=ReplyKeyboardRemove(),
+    await target_message.reply_text(
+        "🏠 Please select your hall \n",
+        reply_markup = reply_markup
+        # parse_mode="Markdown"
     )
-
+    return HALL
 
 
     # await update.message.reply_text(
@@ -1055,10 +1051,10 @@ async def handle_hall(update:Update, context:ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     
     if not query:
-        # fallback safety
-        await update.message.reply_text("Please select a hall using the buttons.")
+    # Fallback safety if something goes wrong
+        if update.message:
+            await update.message.reply_text("Please select a hall using the buttons.")
         return ConversationHandler.END
-    
     await query.answer()
 
     hall_id = query.data.split("_")[1]
@@ -1327,13 +1323,14 @@ if __name__ == '__main__':
             CallbackQueryHandler(checkout, pattern="^checkout$")
         ],
         states={
-            HALL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_hall)],
+            HALL: [CallbackQueryHandler(handle_hall, pattern="^location_\d+$")],
             ADDRESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_address)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
-    app.add_handler(conv_handler)
     app.add_handler(conversation_handler)
+    app.add_handler(conv_handler)
+    
     # app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, ask_details))
     # from telegram.ext import filters
 
@@ -1350,12 +1347,12 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_portion_input, pattern="^edit_portions_"))
     app.add_handler(CallbackQueryHandler(handle_next_plate, pattern="^next_plate$"))
     app.add_handler(CallbackQueryHandler(handle_cart_or_continue, pattern="^(add_to_cart|continue_shopping|checkout)$"))
-    app.add_handler(CallbackQueryHandler(checkout, pattern="^checkout$"))
+    # app.add_handler(CallbackQueryHandler(checkout, pattern="^checkout$"))
     app.add_handler(CallbackQueryHandler(handle_manage_item, pattern="^manage_\d+$"))
     app.add_handler(CallbackQueryHandler(handle_view_cart, pattern="^handle_view_cart$"))
     app.add_handler(CallbackQueryHandler(handle_edit_item, pattern="^edit_"))
     app.add_handler(CallbackQueryHandler(handle_delete_item, pattern="^delete_\d+$"))
-    app.add_handler(CallbackQueryHandler(handle_hall, pattern="^hall_"))
+    # app.add_handler(CallbackQueryHandler(handle_hall, pattern="^hall_"))
 
     
 
