@@ -1351,6 +1351,8 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_view_cart, pattern="^handle_view_cart$"))
     app.add_handler(CallbackQueryHandler(handle_edit_item, pattern="^edit_"))
     app.add_handler(CallbackQueryHandler(handle_delete_item, pattern="^delete_\d+$"))
+    app.add_handler(CallbackQueryHandler(handle_hall, pattern="^location_"))
+
     
 
 
