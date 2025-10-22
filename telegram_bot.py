@@ -86,6 +86,19 @@ def get_user_by_telegram_id(telegram_id):
 def get_location():
     return list(Location.objects.values("id", "name"))
 
+# get Location instance by id (sync wrapper)
+@sync_to_async(thread_sensitive=True)
+def get_location_by_id_sync(loc_id):
+    try:
+        return Location.objects.get(id=loc_id)
+    except Location.DoesNotExist:
+        return None
+
+# get Location instance by name (sync wrapper)
+@sync_to_async(thread_sensitive=True)
+def get_location_by_name_sync(name):
+    return Location.objects.filter(name=name).first()
+
 from asgiref.sync import sync_to_async
 
 @sync_to_async
@@ -1007,6 +1020,7 @@ async def checkout(update:Update, context:ContextTypes.DEFAULT_TYPE):
     ]
     # location_names = [[loc["name"]] for loc in locations]  # make it button-friendly
     
+    
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     # reply_markup = [
@@ -1033,8 +1047,27 @@ async def checkout(update:Update, context:ContextTypes.DEFAULT_TYPE):
     # return ADDRESS
 
 async def handle_hall(update:Update, context:ContextTypes.DEFAULT_TYPE):
-    hall = update.message.text.strip()
-    context.user_data["hall"] = hall
+    
+    query = update.callback_query
+    
+    if not query:
+        # fallback safety
+        await update.message.reply_text("Please select a hall using the buttons.")
+        return ConversationHandler.END
+    
+    await query.answer()
+
+    hall_id = query.data.split("_")[1]
+
+    # Fetch the hall from DB safely
+    hall_obj = await get_location_by_id_sync(id=hall_id)
+    if not hall_obj:
+        await query.message.reply_text("Selected hall not found. Try again.")
+        return ConversationHandler.END
+    
+    context.user_data["hall"] = hall_obj.name
+    context.user_data["hall_id"] = hall_obj.id
+    
     await update.message.reply_text(
         "🕒 Please enter your *delivery address * in this format:\n\n"
         "`Room 202`",
@@ -1048,12 +1081,14 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
     cart = await get_cart_items(telegram_id)
     address = update.message.text.strip()
     
-    full_address = f"{context.user_data.get('hall')}, {address}"
+    hall_name = context.user_data.get("hall")
+    hall_id = context.user_data.get("hall_id")
+    # full_address = f"{context.user_data.get('hall')}, {address}"
     
-    location_obj = await sync_to_async(Location.objects.filter(name=context.user_data.get("hall")).first)()
+    location_obj = await get_location_by_id_sync(hall_name) if hall_id else await get_location_by_name_sync(hall_name)
     assigned_waiter = None
     if location_obj:
-        assigned_waiter = await get_next_waiter(location_obj)
+        assigned_waiter = await get_next_waiter(location_obj) if location_obj else None
         
     order = await create_order(
         telegram_id = telegram_id, 

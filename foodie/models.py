@@ -56,8 +56,7 @@ class Order(models.Model):
     total_amount = models.IntegerField()
     delivery_no = models.IntegerField(unique=True, blank=True, null=True)
     delivery_address = models.TextField(blank=True, null=True)
-    
-    # location = models.ForeignKey("Location", on_delete=models.CASCADE, null=True, blank=True)
+    location = models.ForeignKey("Location", on_delete=models.CASCADE, null=True, blank=True)
     waiter = models.ForeignKey("Waiter", on_delete=models.SET_NULL, null=True, blank=True)
 
     # vendor = models.ForeignKey(Vendors, on_delete=models.CASCADE)
