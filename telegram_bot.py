@@ -1021,7 +1021,7 @@ async def checkout(update:Update, context:ContextTypes.DEFAULT_TYPE):
     # location_names = [[loc["name"]] for loc in locations]  # make it button-friendly
     
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    # reply_markup = InlineKeyboardMarkup(keyboard)
     
     # reply_markup = [
             # [InlineKeyboardButton("⬅️ Back to Food", callback_data="go_back_to_food")],
@@ -1032,12 +1032,16 @@ async def checkout(update:Update, context:ContextTypes.DEFAULT_TYPE):
         # ]
     # reply_markup = ReplyKeyboardMarkup(location_names, resize_keyboard=True, one_time_keyboard=True)
 
-    await target_message.reply_text(
-        "🏠 Please select your hall \n",
-        reply_markup = reply_markup
-        # parse_mode="Markdown"
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=(
+            "🕒 Please enter your *delivery address* in this format:\n\n"
+            "`Room 202`"
+        ),
+        parse_mode="Markdown",
+        reply_markup=ReplyKeyboardRemove(),
     )
-    return HALL
+
 
 
     # await update.message.reply_text(
