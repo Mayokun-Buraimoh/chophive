@@ -1068,7 +1068,7 @@ async def handle_hall(update:Update, context:ContextTypes.DEFAULT_TYPE):
     context.user_data["hall"] = hall_obj.name
     context.user_data["hall_id"] = hall_obj.id
     
-    await update.message.reply_text(
+    await query.message.reply_text(
         "🕒 Please enter your *delivery address * in this format:\n\n"
         "`Room 202`",
         parse_mode="Markdown",
