@@ -1321,7 +1321,7 @@ if __name__ == '__main__':
     
     conv_handler = ConversationHandler(
         entry_points=[
-            CallbackQueryHandler(checkout, pattern="^checkout$")
+            MessageHandler(filters.Regex("(?i)^checkout$"), checkout),
         ],
         states={
             HALL: [CallbackQueryHandler(handle_hall, pattern=r"^location_\d+$")],
