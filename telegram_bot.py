@@ -1085,7 +1085,8 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
     hall_id = context.user_data.get("hall_id")
     # full_address = f"{context.user_data.get('hall')}, {address}"
     
-    location_obj = await get_location_by_id_sync(hall_name) if hall_id else await get_location_by_name_sync(hall_name)
+    location_obj = await get_location_by_id_sync(hall_id)
+    # if hall_id else await get_location_by_name_sync(hall_name)
     assigned_waiter = None
     if location_obj:
         assigned_waiter = await get_next_waiter(location_obj) if location_obj else None
