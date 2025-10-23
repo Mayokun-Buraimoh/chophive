@@ -88,9 +88,9 @@ def get_location():
 
 # get Location instance by id (sync wrapper)
 @sync_to_async(thread_sensitive=True)
-def get_location_by_id_sync(loc_id):
+def get_location_by_id_sync(location_id):
     try:
-        return Location.objects.get(id=loc_id)
+        return Location.objects.get(id=location_id)
     except Location.DoesNotExist:
         return None
 
