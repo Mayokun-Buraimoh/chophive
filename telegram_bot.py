@@ -1320,9 +1320,8 @@ if __name__ == '__main__':
     
     
     conv_handler = ConversationHandler(
-        entry_points=[
-            CallbackQueryHandler(checkout, pattern="^checkout$")
-        ],
+        entry_points=[MessageHandler(filters.Regex("(?i)^checkout$"), checkout)],
+
         states={
             HALL: [CallbackQueryHandler(handle_hall, pattern=r"^location_\d+$")],
             ADDRESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_address)],
@@ -1355,12 +1354,13 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_view_cart, pattern=r"^handle_view_cart$"))
     app.add_handler(CallbackQueryHandler(handle_edit_item, pattern=r"^edit_\d+$"))
     app.add_handler(CallbackQueryHandler(handle_delete_item, pattern=r"^delete_\d+$"))
+    
+    # app.add_handler(CallbackQueryHandler(handle_hall, pattern="^hall_"))
 
     # app.add_handler(CallbackQueryHandler(handle_manage_item, pattern="^manage$"))
     # app.add_handler(CallbackQueryHandler(handle_view_cart, pattern="^handle_view_cart$"))
     # app.add_handler(CallbackQueryHandler(handle_edit_item, pattern="^edit_"))
     # app.add_handler(CallbackQueryHandler(handle_delete_item, pattern="^delete$"))
-    # app.add_handler(CallbackQueryHandler(handle_hall, pattern="^hall_"))
 
     
 
