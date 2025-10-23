@@ -1318,16 +1318,18 @@ if __name__ == '__main__':
     fallbacks=[CommandHandler("cancel", cancel)],
     )
     
+    
     conv_handler = ConversationHandler(
         entry_points=[
             CallbackQueryHandler(checkout, pattern="^checkout$")
         ],
         states={
-            HALL: [CallbackQueryHandler(handle_hall, pattern="^location_\d+$")],
+            HALL: [CallbackQueryHandler(handle_hall, pattern=r"^location_\d+$")],
             ADDRESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_address)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
+ 
     app.add_handler(conversation_handler)
     app.add_handler(conv_handler)
     
@@ -1348,10 +1350,10 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(handle_next_plate, pattern="^next_plate$"))
     app.add_handler(CallbackQueryHandler(handle_cart_or_continue, pattern="^(add_to_cart|continue_shopping|checkout)$"))
     # app.add_handler(CallbackQueryHandler(checkout, pattern="^checkout$"))
-    app.add_handler(CallbackQueryHandler(handle_manage_item, pattern="^manage_\d+$"))
+    app.add_handler(CallbackQueryHandler(handle_manage_item, pattern="^manage$"))
     app.add_handler(CallbackQueryHandler(handle_view_cart, pattern="^handle_view_cart$"))
     app.add_handler(CallbackQueryHandler(handle_edit_item, pattern="^edit_"))
-    app.add_handler(CallbackQueryHandler(handle_delete_item, pattern="^delete_\d+$"))
+    app.add_handler(CallbackQueryHandler(handle_delete_item, pattern="^delete$"))
     # app.add_handler(CallbackQueryHandler(handle_hall, pattern="^hall_"))
 
     
