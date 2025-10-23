@@ -1060,7 +1060,7 @@ async def handle_hall(update:Update, context:ContextTypes.DEFAULT_TYPE):
     hall_id = query.data.split("_")[1]
 
     # Fetch the hall from DB safely
-    hall_obj = await get_location_by_id_sync(id=hall_id)
+    hall_obj = await get_location_by_id_sync(hall_id)
     if not hall_obj:
         await query.message.reply_text("Selected hall not found. Try again.")
         return ConversationHandler.END
