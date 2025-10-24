@@ -896,14 +896,25 @@ async def handle_view_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     keyboard.append([
         InlineKeyboardButton("🧹 Clear Cart", callback_data="clear_cart")
-    ])
-
-
-                    
+    ])   
     
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await update.message.reply_text(message, parse_mode="Markdown", reply_markup=reply_markup)
+    if hasattr(update, "callback_query") and update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(
+            message,
+            parse_mode="Markdown",
+            reply_markup=reply_markup
+        )
+    else:
+        await update.message.reply_text(
+            message,
+            parse_mode="Markdown",
+            reply_markup=reply_markup
+        )
+    # await update.message.reply_text(message, parse_mode="Markdown", reply_markup=reply_markup)
 
 
 async def handle_manage_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
