@@ -249,6 +249,23 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update_or_create_telegram_user(user)
     
+    args = context.args  # what comes after /start
+
+    # ✅ Case 1: User returned from Paystack (deep link)
+    if args and args[0].startswith("paid_"):
+        reference = args[0].split("_", 1)[1]
+
+        # Verify payment with Paystack
+        url = f"https://api.paystack.co/transaction/verify/{reference}"
+        headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
+        response = requests.get(url, headers=headers).json()
+
+        if response.get("data") and response["data"]["status"] == "success":
+            await update.message.reply_text("✅ Payment successful! 🎉\nThanks for your order ❤️")
+        else:
+            await update.message.reply_text("❌ Payment could not be verified. Please contact support.")
+        return  # stop here so normal /start doesn't run
+
     await update.message.reply_text(
         f"👋Welcome to Chophive {username}\n\n  Thank you for choosing the number one food delivery service at Bowen University\n\n We've registered you using your telegram details. You can now place your orders\n\nSay no to long queues with ChopHive ",
         reply_markup=reply_markup
@@ -1176,7 +1193,7 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
             "telegram_id": telegram_id,
             "cart": cart_data
         },
-        "callback_url": "https://9f4dea2b20e8.ngrok-free.app/verify_payment/"  # optional, can be your site
+        "callback_url": f"https://t.me/chophive_bot?start=paid_{reference}", # optional, can be your site
         
     }
 

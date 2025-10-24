@@ -1,5 +1,6 @@
 from django.db import models
 import uuid
+from django.core.validators import RegexValidator
 
 
 class TelegramUser(models.Model):
@@ -84,7 +85,16 @@ class Location(models.Model):
 class Waiter(models.Model):
     name = models.CharField(max_length=20)
     # user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE)
-    phone_no = models.IntegerField()
+    phone_no = models.CharField(
+        max_length=11,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{11}$',
+                message='Phone number must contain exactly 11 digits.'
+            )
+        ]
+    )
+    
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
     
     def __str__(self):
