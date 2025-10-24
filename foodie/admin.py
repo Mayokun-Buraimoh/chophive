@@ -19,7 +19,7 @@ admin.site.register(TelegramUser)
 admin.site.register(Cart)
 admin.site.register(OrderItem)
 admin.site.register(Location)
-# admin.site.register(Waiter)
+admin.site.register(Waiter)
 
 
 
