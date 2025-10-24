@@ -912,7 +912,9 @@ async def handle_view_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message += "🚫 *Tap any item below to edit or remove it*"
     
     keyboard.append([
-        InlineKeyboardButton("🧹 Clear Cart", callback_data="clear_cart")
+        InlineKeyboardButton("🧹 Clear Cart", callback_data="clear_cart"),
+        InlineKeyboardButton("🧹 Back to vendors", callback_data="go_back_to_vendors"),
+        InlineKeyboardButton("Checkout", callback_data="checkout")
     ])   
     
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1226,6 +1228,34 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("⚠️ Error connecting to payment gateway.")
     await update.message.reply_text(message, parse_mode="Markdown", reply_markup=reply_markup)
+    
+    # if telegram_id and cart_items:
+#     #         tg_user, _ = TelegramUser.objects.get_or_create(
+#     #             telegram_id=telegram_id
+#     #         )
+
+#     #         order = Order.objects.create(
+#     #             telegram_id=tg_user,
+#     #             total_amount=sum(
+#     #                 item["price"] * item["portions"] for item in cart_items
+#     #             ),
+#     #             delivery_no=random.randint(10000,99999),# last 5 digits of ref
+#     #             status="paid",
+#     #         )
+
+#     #         for item in cart_items:
+#     #             try:
+#     #                 food_obj = Food.objects.get(id=item["food_id"])
+#     #             except Food.DoesNotExist:
+#     #                 continue
+#     #             OrderItem.objects.create(
+#     #                 order=order,
+#     #                 food=food_obj,
+#     #                 quantity=item["portions"],
+#     #                 price_at_order_time=item["price"],
+#     #                 vendor=food_obj.vendor,
+#     #             )
+
     return ConversationHandler.END
 
 async def cancel(update, context):
