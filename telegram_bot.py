@@ -975,12 +975,14 @@ async def handle_delete_item(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await delete_cart_item(item_id)
     
     
-    number_keyboard = ([InlineKeyboardButton("⬅️ Back to cart", callback_data="handle_view_cart")])
+    number_keyboard = [
+        [InlineKeyboardButton("⬅️ Back to cart", callback_data="handle_view_cart")]
+    ]
     reply_markup = InlineKeyboardMarkup(number_keyboard)
-    await query.edit_message_text("🗑 Item deleted successfully!", reply_markup=reply_marku)
+    await query.edit_message_text("🗑 Item deleted successfully!", reply_markup=reply_markup)
     
     # Optionally refresh the cart
-    await handle_view_cart(update, context)
+    # await handle_view_cart(update, context)
 
 async def clear_cart(update:Update, context:ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
