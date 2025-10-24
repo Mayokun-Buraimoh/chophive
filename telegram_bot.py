@@ -913,7 +913,7 @@ async def handle_view_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     keyboard.append([
         InlineKeyboardButton("🧹 Clear Cart", callback_data="clear_cart"),
-        InlineKeyboardButton("🧹 Back to vendors", callback_data="go_back_to_vendors"),
+        InlineKeyboardButton("Back to vendors", callback_data="go_back_to_vendors"),
         InlineKeyboardButton("Checkout", callback_data="checkout")
     ])   
     
