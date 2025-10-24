@@ -142,6 +142,34 @@ def create_order(telegram_id,status,total_amount, delivery_no, delivery_address,
     )
 
 @sync_to_async(thread_sensitive=True)
+def update_order_status_to_paid(telegram_id):
+    user = TelegramUser.objects.get(telegram_id=telegram_id)
+    
+    # Find the user's most recent pending order
+    order = Order.objects.filter(user=user, status="pending").order_by('-created_at').first()
+    
+    if order:
+        order.status = "paid"
+        order.save()
+        return order
+    else:
+        return None
+    
+@sync_to_async(thread_sensitive=True)
+def update_order(telegram_id,status,total_amount, delivery_no, delivery_address, waiter):
+    user, _ = TelegramUser.objects.get_or_create(telegram_id=telegram_id)
+    return Order.objects.update(
+        user=user,
+        # created_at=created_at,
+        status=status,
+        total_amount = total_amount,
+        delivery_no=delivery_no,
+        delivery_address=delivery_address,
+        waiter=waiter,
+     
+    )
+
+@sync_to_async(thread_sensitive=True)
 def get_orderitem(order,  food, quantity, price_at_order_time , vendor):
     # order = Order.objects.get(id=order_id)
     # vendor = Vendors.objects.get(id=vendor_id)
@@ -1203,28 +1231,39 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
         "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
         "Content-Type": "application/json"
     }
-
+    
+    
     # Call Paystack to initialize transaction
-    response = requests.post(
+    paystack_response = requests.post(
         "https://api.paystack.co/transaction/initialize",
         json=data,
         headers=headers
     )
 
-    if response.status_code == 200:
-        res_data = response.json()
+    if paystack_response.status_code == 200:
+        res_data = paystack_response.json()
         if res_data.get("status"):
             payment_url = res_data["data"]["authorization_url"]
-
+            
+            
             await update.message.reply_text(
                 f"🛒 *Total: ₦{total_sum}*\n\n"
                 f"💳 Click below to complete payment:\n{payment_url}",
                 parse_mode="Markdown"
             )
             
-             
-        else:
-            await update.message.reply_text("❌ Failed to initialize payment. Try again.")
+            verify_response = requests.get(
+                f"https://api.paystack.co/transaction/verify/{reference}",
+                headers={"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
+            )
+
+            if verify_response.status_code == 200 and verify_response.json()["data"]["status"] == "success":
+                await update_order_status_to_paid(telegram_id)
+                await update.message.reply_text("✅ Payment confirmed! Your order is now marked as *PAID*.", parse_mode="Markdown")
+            else:
+                await update.message.reply_text("⚠️ Awaiting payment confirmation...", parse_mode="Markdown")
+            
+        
     else:
         await update.message.reply_text("⚠️ Error connecting to payment gateway.")
     await update.message.reply_text(message, parse_mode="Markdown", reply_markup=reply_markup)
