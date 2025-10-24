@@ -974,7 +974,10 @@ async def handle_delete_item(update: Update, context: ContextTypes.DEFAULT_TYPE)
     # Delete from database (implement helper)
     await delete_cart_item(item_id)
     
-    await query.edit_message_text("🗑 Item deleted successfully!")
+    
+    number_keyboard = ([InlineKeyboardButton("⬅️ Back to cart", callback_data="handle_view_cart")])
+    reply_markup = InlineKeyboardMarkup(number_keyboard)
+    await query.edit_message_text("🗑 Item deleted successfully!", reply_markup=reply_marku)
     
     # Optionally refresh the cart
     await handle_view_cart(update, context)
