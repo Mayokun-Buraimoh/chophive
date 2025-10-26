@@ -8,7 +8,8 @@ class TelegramUser(models.Model):
     username = models.CharField(max_length=150, null=True, blank=True)
     email = models.EmailField(max_length=100)
     phone = models.CharField(max_length=20, unique= True)
-    
+    joined_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
         return f"{self.username} - {self.phone} - {self.email}" 
     
@@ -108,8 +109,14 @@ class WaiterAssignmentTracker(models.Model):
     def __str__(self):
         return f"{self.location.name} → Last index {self.last_assigned_index}"
 
+class BroadcastMessage(models.Model):
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    sent = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-
+    def __str__(self):
+        return self.title
 
     
     

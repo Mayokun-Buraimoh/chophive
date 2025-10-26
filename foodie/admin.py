@@ -13,6 +13,7 @@ class CartOrderAdmin(ImportExportModelAdmin):
     list_filter = ['status','created_at']
     list_display = ['user', 'created_at','status','total_amount','delivery_no','delivery_address']
 
+
 admin.site.register(Vendors)
 admin.site.register(Food)
 admin.site.register(TelegramUser)

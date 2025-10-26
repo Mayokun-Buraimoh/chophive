@@ -449,6 +449,10 @@ async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         phone = update.message.text.strip()
     
+    if not re.match(r'^(?:\+234|0)[789][01]\d{8}$', phone):
+        await update.message.reply_text("❌ Invalid phone number. Please enter a valid one (e.g. 08012345678 or +2348012345678):")
+        return ASK_PHONE
+    
     # await send_vendor_list(update, context)
     await save_phone(telegram_id, phone)
     await update.message.reply_text("✅ Phone number saved.")
@@ -468,6 +472,10 @@ async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
     email = update.message.text.strip()
+    
+    if not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email):
+        await update.message.reply_text("❌ Invalid email format. Please try again (e.g. user@gmail.com):")
+        return ASK_EMAIL
     
     await save_email(telegram_id, email)
     await update.message.reply_text("✅ Email saved.")
