@@ -1,14 +1,15 @@
+
 from django.db import models
 import uuid
 from django.core.validators import RegexValidator
-
+from datetime import timezone
 
 class TelegramUser(models.Model):
     telegram_id = models.BigIntegerField(unique=True)
     username = models.CharField(max_length=150, null=True, blank=True)
     email = models.EmailField(max_length=100)
     phone = models.CharField(max_length=20, unique= True)
-    joined_at = models.DateTimeField(auto_now_add=True)
+    joined_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.username} - {self.phone} - {self.email}" 
