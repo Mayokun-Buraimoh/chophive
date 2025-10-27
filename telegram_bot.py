@@ -84,6 +84,11 @@ def get_user_by_telegram_id(telegram_id):
     return TelegramUser.objects.filter(telegram_id=telegram_id).first()
 
 @sync_to_async(thread_sensitive=True)
+def get_user_email_by_telegram_id(telegram_id):
+    user = TelegramUser.objects.filter(telegram_id=telegram_id).first()
+    return user.email if user else None
+
+@sync_to_async(thread_sensitive=True)
 def get_location():
     return list(Location.objects.values("id", "name"))
 
@@ -1150,6 +1155,7 @@ async def handle_hall(update:Update, context:ContextTypes.DEFAULT_TYPE):
     
 async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
+    email = await get_user_email_by_telegram_id(telegram_id)
     cart = await get_cart_items(telegram_id)
     address = update.message.text.strip()
     
@@ -1204,11 +1210,11 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
     for i, item in enumerate(cart, 1):
         food_name = item.food.name
         vendor = item.vendor.name
-        plate = item.vendor.plate_price
+        pack = item.vendor.plate_price
         delivery = item.vendor.delivery_fee
         portions = item.portions
         price = item.food.price  # fallback to 0 if missing
-        total = ((price * portions) + delivery + (plate*portions))
+        total = ((price * portions) + delivery + (pack*portions))
         
 
         cart_data.append({
@@ -1222,8 +1228,9 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
             "pack": item.vendor.plate_price
         })
 
-        message += f"{i}. ({vendor}) x {food_name} x {portions} → ₦{total}\n",
+        message += f"{i}. ({vendor}) x {food_name} x {portions} \n"
         message += f"Additional charges: Delivery fee: {delivery} x pack : {pack}"
+        
         total_sum += total
 
     message += f"\n💰 *Total: ₦{total_sum}*"
@@ -1232,12 +1239,13 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
         message += f"\n *Assigned waiter: * {assigned_waiter.name}"
     reference = str(uuid.uuid4())
     data = {
-        "email": f"user{telegram_id}@example.com",  # placeholder email
+        "email": "email",  # placeholder email
         "amount": int(total_sum * 100),  # amount in kobo
         "reference": reference,
         "currency": "NGN",
         "metadata": {
             "telegram_id": telegram_id,
+            "order_id": order.id,
             "cart": cart_data
         },
         "callback_url": f"https://t.me/chophive_bot?start=paid_{reference}", # optional, can be your site
@@ -1269,17 +1277,17 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
                 parse_mode="Markdown"
             )
             
-            verify_response = requests.get(
-                f"https://api.paystack.co/transaction/verify/{reference}",
-                headers={"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
-            )
+            # verify_response = requests.get(
+            #     f"https://api.paystack.co/transaction/verify/{reference}",
+            #     headers={"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
+            # )
 
 
-            if verify_response.status_code == 200 and verify_response.json()["data"]["status"] == "success":
-                await update_order_status_to_paid(telegram_id)
-                await update.message.reply_text("✅ Payment confirmed! Your order is now marked as *PAID*.", parse_mode="Markdown")
-            else:
-                await update.message.reply_text("⚠️ Awaiting payment confirmation...", parse_mode="Markdown")
+            # if verify_response.status_code == 200 and verify_response.json()["data"]["status"] == "success":
+            #     await update_order_status_to_paid(telegram_id)
+            #     await update.message.reply_text("✅ Payment confirmed! Your order is now marked as *PAID*.", parse_mode="Markdown")
+            # else:
+            #     await update.message.reply_text("⚠️ Awaiting payment confirmation...", parse_mode="Markdown")
             
         
     else:

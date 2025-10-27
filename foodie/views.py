@@ -1,3 +1,59 @@
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+import json
+from .models import Order
+
+@csrf_exempt
+def paystack_webhook(request):
+    data = json.loads(request.body.decode('utf-8'))
+    
+    # Paystack sends various events, we only care about successful payments
+    if data.get("event") == "charge.success":
+        payment_data = data.get("data", {})
+        metadata = payment_data.get("metadata", {})
+        telegram_id = metadata.get("telegram_id")
+        order_id = metadata.get("order_id")
+
+        try:
+            order = Order.objects.get(id=order_id, user__telegram_id=telegram_id)
+            order.status = "paid"
+            order.save()
+            print(f"✅ Order {order_id} for user {telegram_id} marked as paid.")
+        except Order.DoesNotExist:
+            print("⚠️ Order not found or mismatch.")
+
+    return HttpResponse(status=200)
+
+# import json
+# import requests
+# from django.http import JsonResponse
+# from django.views.decorators.csrf import csrf_exempt
+# from .models import Order  # your model
+
+# PAYSTACK_SECRET_KEY = "sk_test_xxxxx"  # replace with your secret key
+
+# @csrf_exempt
+# def paystack_webhook(request):
+#     try:
+#         payload = json.loads(request.body.decode('utf-8'))
+#         event = payload.get("event")
+
+#         if event == "charge.success":
+#             reference = payload["data"]["reference"]
+#             amount = payload["data"]["amount"] / 100  # Paystack sends amount in kobo
+
+#             # ✅ Find the order and update it
+#             order = Order.objects.filter(reference=reference).first()
+#             if order:
+#                 order.status = "paid"
+#                 order.save()
+
+#         return JsonResponse({"status": "success"}, status=200)
+
+#     except Exception as e:
+#         print("Webhook error:", e)
+#         return JsonResponse({"status": "error"}, status=400)
+
 # import json
 # import requests
 # from django.views.decorators.csrf import csrf_exempt
