@@ -643,14 +643,18 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
         # --- NEW ITEM FLOW ---
         telegram_id = update.effective_user.id
         vendor_id = context.user_data.get("last_selected_vendor")
-        plates = context.user_data.get("total_plates", 1)
+        # plates = context.user_data.get("total_plates", 1)
         food = context.user_data.get("selected_food")
-        plate_no = context.user_data.get("current_plate", 1)
+        
+        
         if not food:
             await query.message.reply_text("❗ You haven't selected a food item yet.")
             return
 
-        total_price = food["price"] * portions
+        plate_no = context.user_data.get("current_plate")
+        if not plate_no or plate_no <= 0:
+            plate_no = 1
+            context.user_data["current_plate"] = 1
 
         # Ensure cart structure exists
         # if "cart" not in context.user_data:
@@ -660,7 +664,7 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
         #     context.user_data["filled_plates"] = 0
 
         # plate_no = context.user_data["current_plate"]
-
+        total_price = food["price"] * portions
         if "cart" not in context.user_data:
             context.user_data["cart"] = {plate_no: []}
 
