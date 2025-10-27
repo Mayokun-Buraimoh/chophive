@@ -601,12 +601,6 @@ async def handle_food_selection(update: Update, context: ContextTypes.DEFAULT_TY
     
     food_id = int(query.data.replace("food_", ""))
     food = await get_food_by_id(food_id)
-    
-    context.user_data.setdefault("cart", {})
-    context.user_data.setdefault("filled_plates", 0)
-    context.user_data.setdefault("total_plates", 1)
-    context.user_data.setdefault("current_plate", 1)
-    
     context.user_data['selected_food'] = {'id': food.id, 'name': food.name, 'price': food.price}
     number_keyboard = [
         [InlineKeyboardButton(str(i), callback_data=f"portions_{i}")]
@@ -649,22 +643,14 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
         # --- NEW ITEM FLOW ---
         telegram_id = update.effective_user.id
         vendor_id = context.user_data.get("last_selected_vendor")
-        # plates = context.user_data.get("total_plates", 1)
+        plates = context.user_data.get("total_plates", 1)
         food = context.user_data.get("selected_food")
-        
-        context.user_data.setdefault("cart", {})
-        context.user_data.setdefault("filled_plates", 0)
-        context.user_data.setdefault("total_plates", 1)
-        context.user_data.setdefault("current_plate", 1)
-        
+        plate_no = context.user_data.get("current_plate", 1)
         if not food:
             await query.message.reply_text("❗ You haven't selected a food item yet.")
             return
 
-        plate_no = context.user_data.get["current_plate"]
-        if not plate_no or plate_no <= 0:
-            plate_no = 1
-            context.user_data["current_plate"] = 1
+        total_price = food["price"] * portions
 
         # Ensure cart structure exists
         # if "cart" not in context.user_data:
@@ -674,12 +660,12 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
         #     context.user_data["filled_plates"] = 0
 
         # plate_no = context.user_data["current_plate"]
-        total_price = food["price"] * portions
+
         if "cart" not in context.user_data:
             context.user_data["cart"] = {plate_no: []}
 
-        # if plate_no not in context.user_data["cart"]:
-        #     context.user_data["cart"][plate_no] = []
+        if plate_no not in context.user_data["cart"]:
+            context.user_data["cart"][plate_no] = []
             
         # Save to DB (pass plate_no, not "plates")
         await save_cart_item(telegram_id, food["id"], portions, vendor_id, plate_no)
@@ -733,8 +719,6 @@ async def handle_next_plate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if "total_plates" not in context.user_data:
         context.user_data["total_plates"] = 1
         
-    context.user_data.setdefault("current_plate", 1)
-    
     context.user_data["filled_plates"] += 1
     filled = context.user_data["filled_plates"]
     total = context.user_data["total_plates"]
@@ -742,22 +726,16 @@ async def handle_next_plate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     
     # If user has filled all existing plates, add a new one
-    if filled < total:
-        next_plate = filled + 1
-        # context.user_data["total_plates"] += 1
-        # next_plate = context.user_data["total_plates"]
-        # context.user_data["current_plate"] = next_plate
-        # context.user_data["cart"][next_plate] = []
-    else:
+    if filled >= total:
         context.user_data["total_plates"] += 1
         next_plate = context.user_data["total_plates"]
-        
-    context.user_data["current_plate"] = next_plate
-    context.user_data["cart"].setdefault(next_plate, [])
-        # next_plate = filled + 1
-        # context.user_data["current_plate"] = next_plate
-        # if next_plate not in context.user_data["cart"]:
-        #     context.user_data["cart"][next_plate] = []
+        context.user_data["current_plate"] = next_plate
+        context.user_data["cart"][next_plate] = []
+    else:
+        next_plate = filled + 1
+        context.user_data["current_plate"] = next_plate
+        if next_plate not in context.user_data["cart"]:
+            context.user_data["cart"][next_plate] = []
     # if filled >= total:
     #     await query.edit_message_text(
     #         "✅ All plates filled!\n🧾 Ready to checkout?",
