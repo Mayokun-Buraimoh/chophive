@@ -1246,7 +1246,8 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
         "metadata": {
             "telegram_id": telegram_id,
             "order_id": order.id,
-            "cart": cart_data
+            "cart": cart_data,
+            "cart_id": cart.id
         },
         "callback_url": f"https://t.me/chophive_bot?start=paid_{reference}", # optional, can be your site
         
@@ -1350,6 +1351,13 @@ async def cancel(update, context):
 #     await update.message.reply_text(message, parse_mode="Markdown", reply_markup=reply_markup)
 #     # send message to the group
 
+async def order_history(update:Update, context:ContextTypes.DEFAULT_TYPE):
+    telegram_id = update.effective_user.id
+    order=await get_order(telegram_id)
+    
+    if not order:
+        await update.message.reply_text("❌ You don’t have any orders yet.")
+        return
     
 async def delivery_details(update:Update, context:ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id

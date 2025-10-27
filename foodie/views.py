@@ -2,6 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 import json
 from .models import Order
+from .models import Cart
 
 @csrf_exempt
 def paystack_webhook(request):
@@ -13,11 +14,14 @@ def paystack_webhook(request):
         metadata = payment_data.get("metadata", {})
         telegram_id = metadata.get("telegram_id")
         order_id = metadata.get("order_id")
+        cart_id = metadata.get("cart_id")
+        # cart = metadata.get("cart")
 
         try:
             order = Order.objects.get(id=order_id, user__telegram_id=telegram_id)
             order.status = "paid"
             order.save()
+            Cart.objects.filter(id=cart_id, user__telegram_id=telegram_id).delete()
             print(f"✅ Order {order_id} for user {telegram_id} marked as paid.")
         except Order.DoesNotExist:
             print("⚠️ Order not found or mismatch.")
