@@ -1186,6 +1186,8 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
             quantity=item.portions,
             price_at_order_time=item.food.price,
             vendor=item.vendor,
+            # plate=item.vendor.plate_price,
+            # delivery=item.vendor.delivery_fee
         )
 
 
@@ -1202,9 +1204,12 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
     for i, item in enumerate(cart, 1):
         food_name = item.food.name
         vendor = item.vendor.name
+        plate = item.vendor.plate_price
+        delivery = item.vendor.delivery_fee
         portions = item.portions
         price = item.food.price  # fallback to 0 if missing
-        total = price * portions
+        total = ((price * portions) + delivery + (plate*portions))
+        
 
         cart_data.append({
             "food_id": item.food.id,
@@ -1212,10 +1217,13 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
             "vendor_id": item.vendor.id,
             "vendor_name": vendor,
             "price": price,
-            "portions": portions
+            "portions": portions,
+            "delivery": item.vendor.delivery_fee,
+            "pack": item.vendor.plate_price
         })
 
-        message += f"{i}. ({vendor}) x {food_name} x {portions} → ₦{total}\n"
+        message += f"{i}. ({vendor}) x {food_name} x {portions} → ₦{total}\n",
+        message += f"Additional charges: Delivery fee: {delivery} x pack : {pack}"
         total_sum += total
 
     message += f"\n💰 *Total: ₦{total_sum}*"
@@ -1265,6 +1273,7 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
                 f"https://api.paystack.co/transaction/verify/{reference}",
                 headers={"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
             )
+
 
             if verify_response.status_code == 200 and verify_response.json()["data"]["status"] == "success":
                 await update_order_status_to_paid(telegram_id)
