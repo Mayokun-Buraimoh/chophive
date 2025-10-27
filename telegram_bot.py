@@ -545,12 +545,18 @@ async def handle_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     plates = int(query.data.replace("plates_", ""))
     vendor_id = context.user_data.get("last_selected_vendor")
     
-    
-    context.user_data['total_plates'] = plates
-    context.user_data['current_plate'] = 1
-    context.user_data['filled_plates'] = 0
-    context.user_data["cart"] = {i: [] for i in range(1, plates + 1)}
-
+    if "cart" not in context.user_data:
+        context.user_data['total_plates'] = plates
+        context.user_data['current_plate'] = 1
+        context.user_data['filled_plates'] = 0
+        context.user_data["cart"] = {i: [] for i in range(1, plates + 1)}
+    else:
+        # Preserve existing cart, just update plate count if needed
+        existing_total = context.user_data.get("total_plates", 0)
+        if plates > existing_total:
+            for i in range(existing_total + 1, plates + 1):
+                context.user_data["cart"][i] = []
+            context.user_data["total_plates"] = plates
     
     # if "cart" not in context.user_data:
     #     context.user_data['cart'] = {}
