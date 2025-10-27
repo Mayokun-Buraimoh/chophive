@@ -1239,7 +1239,7 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
         message += f"\n *Assigned waiter: * {assigned_waiter.name}"
     reference = str(uuid.uuid4())
     data = {
-        "email": "email",  # placeholder email
+        "email": email if email  # placeholder email
         "amount": int(total_sum * 100),  # amount in kobo
         "reference": reference,
         "currency": "NGN",
@@ -1277,17 +1277,17 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
                 parse_mode="Markdown"
             )
             
-            verify_response = requests.get(
-                f"https://api.paystack.co/transaction/verify/{reference}",
-                headers={"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
-            )
+            # verify_response = requests.get(
+            #     f"https://api.paystack.co/transaction/verify/{reference}",
+            #     headers={"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
+            # )
 
 
-            if verify_response.status_code == 200 and verify_response.json()["data"]["status"] == "success":
-                await update_order_status_to_paid(telegram_id)
-                await update.message.reply_text("✅ Payment confirmed! Your order is now marked as *PAID*.", parse_mode="Markdown")
-            else:
-                await update.message.reply_text("⚠️ Awaiting payment confirmation...", parse_mode="Markdown")
+            # if verify_response.status_code == 200 and verify_response.json()["data"]["status"] == "success":
+            #     await update_order_status_to_paid(telegram_id)
+            #     await update.message.reply_text("✅ Payment confirmed! Your order is now marked as *PAID*.", parse_mode="Markdown")
+            # else:
+            #     await update.message.reply_text("⚠️ Awaiting payment confirmation...", parse_mode="Markdown")
             
         
     else:
