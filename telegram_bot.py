@@ -336,9 +336,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await delivery_details(update, context)
         return
    
-    # if text == "order history":
-    #     await order_history(update, context)
-    #     return
+    if text == "order history":
+        await order_history(update, context)
+        return
 
     if text == "checkout":
         await checkout(update, context)
@@ -1353,12 +1353,22 @@ async def cancel(update, context):
 
 async def order_history(update:Update, context:ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
-    order=await get_order(telegram_id)
+    order= await get_order(telegram_id)
     
     if not order:
         await update.message.reply_text("❌ You don’t have any orders yet.")
         return
     
+    message = ""
+    
+    for i, item in enumerate(order, 1):
+        status = item.status
+        if status == "paid":
+            message += (
+            f"\n💰 Address: {item.delivery_address}"
+            f"\n Delivery no {item.delivery_no}"
+            f"\n Status: {item.status}\n"
+        )
 async def delivery_details(update:Update, context:ContextTypes.DEFAULT_TYPE):
     telegram_id = update.effective_user.id
     order=await get_order(telegram_id)
