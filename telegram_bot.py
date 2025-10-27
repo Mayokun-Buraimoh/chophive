@@ -643,7 +643,6 @@ async def handle_portion_input(update: Update, context: ContextTypes.DEFAULT_TYP
         # --- NEW ITEM FLOW ---
         telegram_id = update.effective_user.id
         vendor_id = context.user_data.get("last_selected_vendor")
-        plates = context.user_data.get("total_plates", 1)
         food = context.user_data.get("selected_food")
         plate_no = context.user_data.get("current_plate", 1)
         if not food:
