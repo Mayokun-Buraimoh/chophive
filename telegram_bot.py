@@ -1239,7 +1239,7 @@ async def handle_address(update:Update, context:ContextTypes.DEFAULT_TYPE):
         message += f"\n *Assigned waiter: * {assigned_waiter.name}"
     reference = str(uuid.uuid4())
     data = {
-        "email": email if email  # placeholder email
+        "email": email if email else f"user{telegram_id}@example.com",  # placeholder email
         "amount": int(total_sum * 100),  # amount in kobo
         "reference": reference,
         "currency": "NGN",
